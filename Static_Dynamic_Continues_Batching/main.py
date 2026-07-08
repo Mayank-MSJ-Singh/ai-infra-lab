@@ -1,27 +1,31 @@
 from fastapi import FastAPI
 import uvicorn
 
-from model import Chat
+from app.api.chat import chat_router
+from app.api.conversation import conversation_router
 
-app = FastAPI()
+app = FastAPI(
+    title="Static Dynamic Continuous Batching",
+    description="Learning AI inference and batching techniques",
+    version="0.0.1",
+)
 
-chat = Chat()
+app.include_router(chat_router)
+app.include_router(conversation_router)
+
 
 @app.get("/")
-async def read_root():
-    return {"message": "Hello World"}
-
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
-
-@app.get("/chat/{message}")
-async def chat_endpoint(message: str):
-    await chat.add_message("user", message)
-    response = await chat.get_response()
-    await chat.add_message("assistant", response)
-    return {"response": response}
+async def root():
+    return {
+        "status": "ok",
+        "version": "0.0.1",
+    }
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, port=8000)
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+    )
