@@ -1,0 +1,56 @@
+# .dockerignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.venv/
+venv/
+ENV/
+.env
+
+# Data
+data/
+datasets/
+*.csv
+*.parquet
+
+# Models (if not needed in image)
+models/*.pth
+models/*.h5
+*.onnx
+
+# Development
+.git/
+.gitignore
+.vscode/
+.idea/
+*.md
+LICENSE
+Dockerfile
+docker-compose.yml
+
+# Tests
+test/
+tests/
+test_*.py
+*_test.py
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# Large files
+*.zip
+*.tar.gz
+*.pkl
