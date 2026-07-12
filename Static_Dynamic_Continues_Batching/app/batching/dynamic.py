@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 from app.batching.batch_item import BatchItem
-from app.config import DYNAMIC_BATCH_SIZE, DYNAMIC_BATCH_TIMEOUT
+from app.config import DYNAMIC_BATCH_SIZE, DYNAMIC_TIMEOUT_MS
 
 from app.services.llm_service import chat
 
@@ -15,7 +15,7 @@ class DynamicBatching:
         # Maximum number of requests to collect before creating a batch.
         self.batch_size = DYNAMIC_BATCH_SIZE
         # Wait time for the batch to be processed.
-        self.timeout = DYNAMIC_BATCH_TIMEOUT / 1000   # in seconds
+        self.timeout = DYNAMIC_TIMEOUT_MS / 1000   # in seconds
 
         # Shared queue where incoming requests wait until they are
         # picked up by the background worker.

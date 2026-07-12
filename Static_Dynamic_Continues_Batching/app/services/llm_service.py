@@ -4,7 +4,6 @@ import logging
 from openai import AsyncOpenAI
 
 from app.batching.batch_item import BatchItem
-from app.batching.continuous import ContinuousBatching
 from app.batching.dynamic import DynamicBatching
 from app.batching.static import StaticBatching
 from app.config import (
@@ -30,7 +29,6 @@ class Chat:
         # Only the configured strategy will create its background worker.
         self.static_batching = None
         self.dynamic_batching = None
-        self.continuous_batching = None
 
     async def get_response(self, messages: list[dict]) -> str:
         """
@@ -55,12 +53,6 @@ class Chat:
                 self.dynamic_batching = DynamicBatching()
 
             return await self.dynamic_batching.submit(messages)
-
-        if BATCHING_MODE == "continuous":
-            if self.continuous_batching is None:
-                self.continuous_batching = ContinuousBatching()
-
-            return await self.continuous_batching.submit(messages)
 
         raise ValueError(
             f"Unsupported batching mode: {BATCHING_MODE}"
