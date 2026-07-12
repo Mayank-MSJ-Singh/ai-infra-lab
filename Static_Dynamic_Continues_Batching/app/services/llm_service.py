@@ -4,7 +4,14 @@ import logging
 from openai import AsyncOpenAI
 
 from app.batching.batch_item import BatchItem
-from app.config import LLM_BASE_URL, MODEL_NAME
+from app.batching.continuous import ContinuousBatching
+from app.batching.dynamic import DynamicBatching
+from app.batching.static import StaticBatching
+from app.config import (
+    BATCHING_MODE,
+    LLM_BASE_URL,
+    MODEL_NAME,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -17,9 +24,51 @@ client = AsyncOpenAI(
 
 
 class Chat:
+    def __init__(self):
+        # Lazily initialize batching strategies.
+        #
+        # Only the configured strategy will create its background worker.
+        self.static_batching = None
+        self.dynamic_batching = None
+        self.continuous_batching = None
+
+    async def get_response(self, messages: list[dict]) -> str:
+        """
+        Entry point used by the application.
+
+        Depending on the configured batching mode, the request is either
+        executed immediately or forwarded to the configured batching
+        strategy.
+        """
+
+        if BATCHING_MODE == "none":
+            return await self.generate(messages)
+
+        if BATCHING_MODE == "static":
+            if self.static_batching is None:
+                self.static_batching = StaticBatching()
+
+            return await self.static_batching.submit(messages)
+
+        if BATCHING_MODE == "dynamic":
+            if self.dynamic_batching is None:
+                self.dynamic_batching = DynamicBatching()
+
+            return await self.dynamic_batching.submit(messages)
+
+        if BATCHING_MODE == "continuous":
+            if self.continuous_batching is None:
+                self.continuous_batching = ContinuousBatching()
+
+            return await self.continuous_batching.submit(messages)
+
+        raise ValueError(
+            f"Unsupported batching mode: {BATCHING_MODE}"
+        )
+
     async def generate(self, messages: list[dict]) -> str:
         """
-        Generate a response for a single request.
+        Execute a single inference request.
         """
 
         response = await client.chat.completions.create(
@@ -34,14 +83,14 @@ class Chat:
         batch: list[BatchItem],
     ) -> list[str]:
         """
-        Execute every request in the batch concurrently.
+        Execute a batch of inference requests concurrently.
 
         Note:
-        This is NOT true model-side batching. We simply send multiple
-        requests concurrently using asyncio.gather().
+        This is scheduler-side batching, not true backend batching.
+        Every request is executed concurrently using asyncio.gather().
 
-        If the backend later supports real batching (vLLM, TensorRT-LLM,
-        SGLang, etc.), only this function needs to change.
+        If the serving backend later exposes a native batch API,
+        only this method needs to change.
         """
 
         logger.info(
