@@ -22,13 +22,22 @@ class Tokenizer:
 
         logger.info("Tokenizer loaded successfully")
 
-    def encode(self, text: str):
+    def encode(
+        self,
+        messages: list[dict],
+        ):
         """
-        Convert text into token IDs.
+        Convert chat messages into model input tensors.
         """
 
+        prompt = self.tokenizer.apply_chat_template(
+            messages,
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+
         return self.tokenizer(
-            text,
+            prompt,
             return_tensors="pt",
         )
 

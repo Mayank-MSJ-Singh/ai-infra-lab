@@ -11,7 +11,10 @@ except ImportError:
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 LLM_BASE_URL = os.getenv("LLM_BASE_URL")
-MODEL_NAME = os.getenv("MODEL_NAME", "llm")
+
+MODEL_NAME = os.getenv("MODEL_NAME", "HuggingFaceTB/SmolLM2-135M-Instruct")
+
+MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "1024"))
 
 BATCHING_MODE = os.getenv("BATCHING_MODE", "none")
 

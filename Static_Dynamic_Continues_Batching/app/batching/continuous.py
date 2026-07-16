@@ -3,6 +3,7 @@ import logging
 
 from app.batching.sequence import Sequence
 from app.config import CONTINUOUS_MAX_ACTIVE_SEQUENCES
+from app.inference.engine import InferenceEngine
 
 
 logger = logging.getLogger(__name__)
@@ -18,6 +19,9 @@ class ContinuousBatching:
 
         # Requests currently being decoded.
         self.active_sequences: list[Sequence] = []
+
+        # Initialize the inference engine
+        self.inference_engine = InferenceEngine()
 
         # Start the scheduler.
         self.scheduler = asyncio.create_task(
@@ -59,6 +63,11 @@ class ContinuousBatching:
         logger.info("Continuous batching scheduler started")
 
         while True:
+            if not self.active_sequences:
+                # Suspend until a request arrives
+                first_sequence = await self.waiting_queue.get()
+                self.active_sequences.append(first_sequence)
+
             # Move waiting requests into the active batch
             # if there is available capacity.
             await self._admit_new_requests()
@@ -69,6 +78,9 @@ class ContinuousBatching:
             # Remove completed sequences and wake any waiting
             # HTTP requests.
             self._remove_finished_sequences()
+
+            # Yield control to the event loop to allow other tasks to run
+            await asyncio.sleep(0.0)
 
     async def _admit_new_requests(self):
         """
