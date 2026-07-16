@@ -4,8 +4,6 @@ import logging
 from app.batching.batch_item import BatchItem
 from app.config import STATIC_BATCH_SIZE
 
-from app.services.llm_service import chat
-
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +35,10 @@ class StaticBatching:
         )
 
     async def _worker(self):
+        # Import here to avoid circular import:
+        # llm_service → static → llm_service
+        from app.services.llm_service import chat
+
         logger.info("Static batching worker started")
 
         while True:

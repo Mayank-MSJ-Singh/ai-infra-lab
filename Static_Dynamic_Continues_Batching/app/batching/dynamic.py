@@ -4,8 +4,6 @@ import logging
 from app.batching.batch_item import BatchItem
 from app.config import DYNAMIC_BATCH_SIZE, DYNAMIC_TIMEOUT_MS
 
-from app.services.llm_service import chat
-
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +37,10 @@ class DynamicBatching:
         )
 
     async def _worker(self):
+        # Import here to avoid circular import:
+        # llm_service → dynamic → llm_service
+        from app.services.llm_service import chat
+
         logger.info("Dynamic batching worker started")
 
         while True:
@@ -100,7 +102,7 @@ class DynamicBatching:
         # Start the timeout once the first request arrives.
         deadline = (
             asyncio.get_running_loop().time()
-            + self.timeout_seconds
+            + self.timeout
         )
 
         while len(batch) < self.batch_size:
