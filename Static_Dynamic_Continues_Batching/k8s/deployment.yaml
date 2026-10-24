@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: batching-api 
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: batching-api 
+    
+  template:
+    metadata:
+      labels:
+        app: batching-api 
+      
+    spec: 
+      containers:
+        - name: batching-api 
+          image: batching-api:v1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
